@@ -6,7 +6,7 @@
   "architecture": {
     "64bit": {
       "url": "https://raw.githubusercontent.com/NickSkeries/Skeries/main/artifacts/upsun-0.1.0.zip",
-      "hash": "sha256:82f46c79efae90e70c89c956a41e22ee1cff0e73c385b6ff63edbb318b4349f0"
+      "hash": "sha256:227f741f3bb7e6888fd8bdeddd6a7e23c11551d171c138791157586880623689"
     }
   },
   "extract_dir": "upsun-cli",
