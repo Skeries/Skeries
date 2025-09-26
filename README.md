@@ -10,3 +10,7 @@
 ---
 
 _This repository serves as my personal and project showcase. Feel free to explore my work and reach out for collaboration!_
+
+## Release notes
+
+See the full release changelog in `docs/RELEASE_NOTES.md` for version history and notable changes.
