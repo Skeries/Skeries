@@ -1,0 +1,56 @@
+{
+  "version": "0.6.1",
+  "description": "Upsun command-line automation for storm-driven roofing estimates, rebuttal drafting, and QA workflows.",
+  "homepage": "https://upsun.com",
+  "license": "MIT",
+  "notes": [
+    "Key Data Concepts:",
+    "  • Measurements covering roof planes, edges, drainage, siding, openings, and attachments.",
+    "  • Storm event telemetry (type, hail size, wind speed, duration, geocode, radar IDs, exposure).",
+    "  • Estimate build-out with line items, pricing, O&P, tax, totals, and supporting notes.",
+    "Estimation Flow:",
+    "  1. Ingest measurements and storm telemetry.",
+    "  2. Normalize + validate pitch, waste, and units.",
+    "  3. Assemble line items using estimator and price list.",
+    "  4. Price, summarize, and annotate QA notes.",
+    "  5. Mega Bot QA with math and evidence review.",
+    "  6. Export JSON/PDF artifacts.",
+    "Rebuttal Engine focuses on evidence-first, concise responses grounded in codes, specs, and photos.",
+    "API Endpoints: POST /estimate/build, /estimate/pdf, /rebuttal/draft, /analyze/qa.",
+    "Configure defaults via config.yaml or environment, including waste, O&P, tax, and jurisdictional codes.",
+    "Legal & Ethics: emphasize truthful, evidence-backed deliverables over aggressive claims."
+  ],
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/upsun/cli/releases/download/v0.6.1/upsun_0.6.1_windows_amd64.zip",
+      "hash": {
+        "url": "https://github.com/upsun/cli/releases/download/v0.6.1/SHA256SUMS",
+        "regex": "(?i)^.*upsun_0.6.1_windows_amd64\\.zip\\s+([a-f0-9]{64})$"
+      }
+    }
+  },
+  "installer": {
+    "script": [
+      "$bucketRoot = Split-Path (Split-Path $manifest -Parent) -Parent",
+      "$shimSource = Join-Path $bucketRoot 'bin\\upsun.ps1'",
+      "Copy-Item $shimSource (Join-Path $dir 'upsun.ps1') -Force"
+    ]
+  },
+  "bin": [
+    ["upsun.ps1", "upsun"]
+  ],
+  "checkver": {
+    "github": "https://github.com/upsun/cli"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/upsun/cli/releases/download/v$version/upsun_$version_windows_amd64.zip",
+        "hash": {
+          "url": "https://github.com/upsun/cli/releases/download/v$version/SHA256SUMS",
+          "regex": "(?i)^.*upsun_$version_windows_amd64\\.zip\\s+([a-f0-9]{64})$"
+        }
+      }
+    }
+  }
+}
