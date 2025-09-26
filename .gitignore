@@ -18,3 +18,5 @@ dist/
 
 # Upsun runtime
 .upsun/
+# Allow tracking the main Upsun config file
+!.upsun/config.yaml

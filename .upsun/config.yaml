@@ -1,0 +1,26 @@
+## Minimal Upsun application configuration
+# Generated from the provided Upsun docs examples
+applications:
+  myapp:
+    # The language/runtime for the app.
+    type: 'nodejs:22'
+
+    # Commands available to the runtime; the start command is used to run the web process.
+    web:
+      commands:
+        start: npm start
+      locations:
+        '/':
+          # The public directory relative to the app root.
+          root: 'public'
+          # Forward resources to the app.
+          passthru: true
+          # What files to use when serving a directory.
+          index: ["index.html"]
+          # Allow files even without specified rules.
+          allow: true
+
+# Optional services can be defined at top-level if your app needs them.
+# services:
+#   mysql:
+#     type: mariadb:11.8
