@@ -1,0 +1,19 @@
+{
+  "version": "0.1.0",
+  "description": "Command-line interface for managing UpSun projects (stub package for local testing).",
+  "homepage": "https://upsun.com/",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://raw.githubusercontent.com/NickSkeries/Skeries/main/artifacts/upsun-0.1.0.zip",
+  "hash": "sha256:ad956a0610b72bc24c4a628e8b9083aeba9191a9ac8e8fc86b0ddad2d9e826ac"
+    }
+  },
+  "extract_dir": "upsun-cli",
+  "installer": {
+    "script": "Copy-Item \"$bucketdir\\bin\\upsun.ps1\" \"$dir\" -Force"
+  },
+  "bin": [
+    "upsun.ps1"
+  ]
+}
