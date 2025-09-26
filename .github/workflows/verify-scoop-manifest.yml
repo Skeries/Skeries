@@ -1,0 +1,63 @@
+name: Verify Scoop manifest hash
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [ main ]
+
+jobs:
+  verify:
+    name: Verify upsun.json hash vs built artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build repo ZIP and compute SHA256
+        run: |
+          python3 - <<'PY'
+import os, zipfile, hashlib, json, sys
+root = os.getcwd()
+out = os.path.join(root, 'dist', 'upsun-built.zip')
+os.makedirs(os.path.dirname(out), exist_ok=True)
+excludes = {'.git', '.venv', 'dist', 'node_modules'}
+with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
+    for dirpath, dirnames, filenames in os.walk(root):
+        rel = os.path.relpath(dirpath, root)
+        if rel == '.':
+            rel = ''
+        parts = rel.split(os.sep) if rel else []
+        if any(p in excludes for p in parts):
+            continue
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if any(part in fp for part in excludes):
+                continue
+            arc = os.path.join(rel, f) if rel else f
+            z.write(fp, arc)
+
+sha = hashlib.sha256()
+with open(out, 'rb') as fh:
+    while True:
+        chunk = fh.read(8192)
+        if not chunk:
+            break
+        sha.update(chunk)
+computed = sha.hexdigest()
+
+with open('scoop/upsun.json', 'r') as f:
+    j = json.load(f)
+manifest_hash = j.get('architecture', {}).get('64bit', {}).get('hash', '')
+if not manifest_hash:
+    print('Could not find manifest hash at architecture.64bit.hash in scoop/upsun.json')
+    sys.exit(2)
+manifest_hash = manifest_hash.split(':')[-1].lower()
+
+print('Computed SHA256:', computed)
+print('Manifest SHA256:', manifest_hash)
+if computed != manifest_hash:
+    print('\nERROR: computed SHA256 does not match manifest hash!')
+    sys.exit(1)
+print('\nOK: manifest hash matches built artifact')
+PY
