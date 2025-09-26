@@ -1,0 +1,13 @@
+{
+  "version": "0.1.0",
+  "description": "Upsun helper tooling (CLI wrapper)",
+  "homepage": "https://github.com/Skeries/Skeries",
+  "license": "MIT",
+  "url": "https://github.com/Skeries/Skeries/archive/refs/heads/main.zip",
+  "hash": "REPLACE_WITH_REAL_SHA256",
+  "extract_dir": "Skeries-main",
+  "bin": [
+    "bin/upsun.ps1"
+  ],
+  "notes": "This manifest installs a PowerShell shim that calls the repo's scripts/upsun via WSL when available. Replace the hash with the release ZIP sha256 before publishing to a bucket."
+}
