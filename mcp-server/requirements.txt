@@ -1,4 +1,69 @@
-fastapi==0.103.0
-uvicorn==0.23.0
-# Keep gunicorn for production with uvicorn workers
-gunicorn==23.0.0
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, BaseSettings
+from typing import Any, Union
+import os
+import logging
+
+class Settings(BaseSettings):
+    debug: bool = bool(int(os.environ.get("MCP_DEBUG", "0")))
+    allowed_origins: list[str] = ["*"]
+    version: str = os.environ.get('MCP_VERSION', '0.1.0')
+
+settings = Settings()
+
+app = FastAPI(
+    title="mcp-mock",
+    version=settings.version,
+    debug=settings.debug
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class EchoPayload(BaseModel):
+    message: Union[dict, list, str, int, float, None] = None
+
+@app.get("/", summary="Service info")
+async def index():
+    return {
+        "service": "mcp-mock",
+        "version": settings.version,
+        "status": "running",
+        "debug": settings.debug
+    }
+
+@app.get('/health', summary="Health check")
+async def health():
+    return {"status": "ok"}
+
+@app.get('/info', summary="Environment info")
+async def info():
+    return {
+        "service": "mcp-mock",
+        "version": settings.version,
+        "env": dict(os.environ),
+        "debug": settings.debug
+    }
+
+@app.get('/metrics', summary="Basic app metrics")
+async def metrics():
+    # Example: count endpoints, could be expanded
+    return {
+        "endpoints": [route.path for route in app.routes],
+        "num_endpoints": len(app.routes)
+    }
+
+@app.post('/echo', summary="Echo input payload")
+async def echo(payload: EchoPayload):
+    return {"received": payload.message}
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return {"error": exc.detail, "status_code": exc.status_code}

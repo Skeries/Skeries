@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  mcp-mock:
+    build: ./mcp-server
+    image: skeries/mcp-mock:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - MCP_VERSION=0.1.0
+    restart: unless-stopped
