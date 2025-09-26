@@ -14,3 +14,9 @@ _This repository serves as my personal and project showcase. Feel free to explor
 ## Release notes
 
 See the full release changelog in `docs/RELEASE_NOTES.md` for version history and notable changes.
+
+### PowerShell releases
+
+- Stable (v7.5.x): [Stable release v7.5.x](https://aka.ms/powershell-release?tag=stable)
+- LTS (v7.4.x): [LTS release v7.4.x](https://aka.ms/powershell-release?tag=lts)
+- Preview (v7.6.0-preview.x): [Preview release v7.6.0-preview.x](https://aka.ms/powershell-release?tag=preview)
