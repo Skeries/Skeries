@@ -1,0 +1,81 @@
+name: CI / Build, Push to ACR, Deploy to Container Apps
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+env:
+  # Customize these via repository secrets or workflow inputs
+  ACR_NAME: ${{ secrets.ACR_NAME }}
+  RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
+  CONTAINERAPPS_ENV: ${{ secrets.CONTAINERAPPS_ENV }}
+  CONTAINERAPP_NAME: ${{ secrets.CONTAINERAPP_NAME }}
+  IMAGE_REPO: mcp-mock
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 'Login to Azure'
+        # Recommended: replace this SPN-based login with workload identity (OIDC) for GitHub Actions
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Configure ACR and get login server
+        id: acr-info
+        run: |
+          set -euo pipefail
+          if [ -z "${{ env.ACR_NAME }}" ]; then
+            echo "ACR_NAME not provided via secrets, failing"
+            exit 1
+          fi
+          ACR_LOGIN_SERVER=$(az acr show -n "${{ env.ACR_NAME }}" -g "${{ env.RESOURCE_GROUP }}" --query loginServer -o tsv)
+          echo "ACR_LOGIN_SERVER=${ACR_LOGIN_SERVER}" >> $GITHUB_OUTPUT
+          echo "IMAGE=${ACR_LOGIN_SERVER}/${{ env.IMAGE_REPO }}:latest" >> $GITHUB_OUTPUT
+
+      - name: ACR login (docker)
+        run: |
+          az acr login -n "${{ env.ACR_NAME }}"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push image to ACR
+        uses: docker/build-push-action@v4
+        with:
+          context: ./mcp-server
+          push: true
+          tags: ${{ steps.acr-info.outputs.IMAGE }}
+
+      - name: Deploy to Container App (update image)
+        env:
+          IMAGE: ${{ steps.acr-info.outputs.IMAGE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${{ env.CONTAINERAPP_NAME }}" ] || [ -z "${{ env.RESOURCE_GROUP }}" ]; then
+            echo "CONTAINERAPP_NAME and RESOURCE_GROUP must be set as repo secrets"
+            exit 1
+          fi
+          echo "Deploying image $IMAGE to ${{ env.CONTAINERAPP_NAME }}"
+          az containerapp update --name "${{ env.CONTAINERAPP_NAME }}" --resource-group "${{ env.RESOURCE_GROUP }}" --image "$IMAGE"
+
+      - name: Show container app URL
+        run: |
+          az containerapp show -g "${{ env.RESOURCE_GROUP }}" -n "${{ env.CONTAINERAPP_NAME }}" --query properties.configuration.ingress.fqdn -o tsv
+
+# Notes:
+# - This workflow uses an SPN-based azure/login. For production, configure workload identity federation (OIDC) in Azure AD
+#   and use the azure/login action without storing secrets. See: https://learn.microsoft.com/azure/developer/github/connect-from-azure
+# - Required repository secrets: AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID, AZURE_CREDENTIALS (JSON) or configure OIDC
+#   Also set ACR_NAME, RESOURCE_GROUP, CONTAINERAPPS_ENV, CONTAINERAPP_NAME as repository secrets or replace with literal values.
