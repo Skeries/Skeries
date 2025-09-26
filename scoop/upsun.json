@@ -1,13 +1,19 @@
 {
   "version": "0.1.0",
-  "description": "Upsun helper tooling (CLI wrapper)",
-  "homepage": "https://github.com/Skeries/Skeries",
+  "description": "Command-line interface for managing UpSun projects (stub package for local testing).",
+  "homepage": "https://upsun.com/",
   "license": "MIT",
-  "url": "https://github.com/Skeries/Skeries/archive/refs/heads/main.zip",
-  "hash": "REPLACE_WITH_REAL_SHA256",
-  "extract_dir": "Skeries-main",
+  "architecture": {
+    "64bit": {
+      "url": "https://raw.githubusercontent.com/NickSkeries/Skeries/main/artifacts/upsun-0.1.0.zip",
+      "hash": "sha256:82f46c79efae90e70c89c956a41e22ee1cff0e73c385b6ff63edbb318b4349f0"
+    }
+  },
+  "extract_dir": "upsun-cli",
+  "installer": {
+    "script": "Copy-Item \"$bucketdir\\bin\\upsun.ps1\" \"$dir\" -Force"
+  },
   "bin": [
-    "bin/upsun.ps1"
-  ],
-  "notes": "This manifest installs a PowerShell shim that calls the repo's scripts/upsun via WSL when available. Replace the hash with the release ZIP sha256 before publishing to a bucket."
+    "upsun.ps1"
+  ]
 }
