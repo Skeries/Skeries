@@ -1,14 +1,41 @@
+[CmdletBinding(PositionalBinding = $false)]
 param(
-    [Parameter(ValueFromRemainingArguments=$true)]
-    $args
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]] $Arguments
 )
 
-# Try to run the Linux script via WSL if available
-if (Get-Command wsl -ErrorAction SilentlyContinue) {
-    wsl bash -lc "$(wslpath -a '$(Split-Path -Parent $MyInvocation.MyCommand.Path)')/../scripts/upsun $args"
-    exit $LASTEXITCODE
-} else {
-    Write-Host "This shim expects WSL to be installed on Windows."
-    Write-Host "Alternatively, install Upsun natively on a Linux machine or run this repository inside WSL." 
-    exit 1
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+function Find-UpsunExecutable {
+    param(
+        [string] $BaseDirectory
+    )
+
+    $candidates = @(
+        'upsun.exe',
+        'upsun-windows-amd64.exe',
+        'upsun-windows.exe',
+        'upsun-win64.exe'
+    )
+
+    foreach ($candidate in $candidates) {
+        $candidatePath = Join-Path -Path $BaseDirectory -ChildPath $candidate
+        if (Test-Path -LiteralPath $candidatePath) {
+            return $candidatePath
+        }
+    }
+
+    $fallback = Get-ChildItem -Path $BaseDirectory -Filter 'upsun*.exe' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($fallback) {
+        return $fallback.FullName
+    }
+
+    throw 'Unable to locate upsun executable next to the shim.'
 }
+
+$scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$target = Find-UpsunExecutable -BaseDirectory $scriptDirectory
+
+& $target @Arguments
+exit $LASTEXITCODE
