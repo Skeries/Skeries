@@ -1,0 +1,4 @@
+fastapi==0.103.0
+uvicorn==0.23.0
+# Keep gunicorn for production with uvicorn workers
+gunicorn==23.0.0
